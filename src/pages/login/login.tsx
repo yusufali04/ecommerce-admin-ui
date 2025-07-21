@@ -1,9 +1,9 @@
 import { Alert, Button, Card, Checkbox, Flex, Form, Input, Layout, Space } from "antd";
 import { LockFilled, LockOutlined, UserOutlined } from "@ant-design/icons";
 import Logo from "../../components/icons/Logo";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Credentials } from "../../types";
-import { login } from "../../http/api";
+import { login, self } from "../../http/api";
 
 const loginUser = async (credentials: Credentials) => {
     // Server call logic
@@ -11,13 +11,24 @@ const loginUser = async (credentials: Credentials) => {
     return data;
 }
 
+const getSelf = async () => {
+    const { data } = await self();
+    return data;
+}
+
 const LoginPage = () => {
+    const { refetch } = useQuery({
+        queryKey: ['self'],
+        queryFn: getSelf,
+        enabled: false
+    })
     const { mutate, isPending, isError, error } = useMutation({
         mutationKey: ['login'],
         mutationFn: loginUser,
         onSuccess: async () => {
+            const selfData = await refetch();
+            console.log('user data', selfData.data);
             console.log("Login successful");
-            
         }
     })
 
@@ -32,7 +43,6 @@ const LoginPage = () => {
             <Form 
             initialValues={{ remember: true }} 
             onFinish={(values)=>{
-                console.log(values);
                 mutate({ email: values.username, password: values.password });
             }}>
                 {
