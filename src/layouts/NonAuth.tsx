@@ -6,12 +6,7 @@ const NonAuth = () => {
         if(user !== null) {
             return <Navigate to="/" replace={true}/>
         }
-    return (
-            <div>
-                <h1>NonAuth Component</h1>
-                <Outlet />
-            </div>
-    )
+    return <Outlet />;
 }
 
 export default NonAuth;
