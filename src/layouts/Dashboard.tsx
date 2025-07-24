@@ -27,17 +27,17 @@ const items = [
     {
         key: '/restaurants',
         icon: <Icon component={Food} />,
-        label: <NavLink to={"/restaurants"}>restaurants</NavLink>
+        label: <NavLink to={"/restaurants"}>Restaurants</NavLink>
     },
     {
         key: '/products',
         icon: <Icon component={Basket} />,
-        label: <NavLink to={"/products"}>products</NavLink>
+        label: <NavLink to={"/products"}>Products</NavLink>
     },
     {
         key: '/promos',
         icon: <Icon component={Gift} />,
-        label: <NavLink to={"/promos"}>promos</NavLink>
+        label: <NavLink to={"/promos"}>Promos</NavLink>
     }
 ]
 
@@ -67,7 +67,7 @@ const Dashboard = () => {
                 <Header style={{ padding: "0px 16px", background: colorBgContainer }} >
                     <Flex gap="middle" align="start" justify="space-between">
                             <Badge
-                                text={"Kurnool, Andhra Pradesh"}
+                                text={user.role === "admin"? "You are an admin": user.tenant?.name}
                                 status="success"
                             />
                             <Space size={16}>
