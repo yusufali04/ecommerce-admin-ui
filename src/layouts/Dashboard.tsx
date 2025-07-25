@@ -100,7 +100,7 @@ const Dashboard = () => {
                     <Outlet />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
-                Pizza House ©{new Date().getFullYear()} Built with love by Yusuf
+                Pizza House ©{new Date().getFullYear()} Built with 💖 by Yusuf
                 </Footer>
             </Layout>
         </Layout>
