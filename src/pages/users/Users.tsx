@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getUsers } from "../../http/api";
 import { User } from "../../types";
 import { useAuthStore } from "../../store";
+import UsersFilters from "./UsersFilters";
 
 const columns = [
     {
@@ -56,20 +57,8 @@ const Users = () => {
                 <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Users"}]} />
                 {isLoading && <div>Loading...</div>}
                 {error && <div>{error && "Error while fetching users!"}</div>}
-
+                <UsersFilters />
                 <Table columns={columns} dataSource={users}/>
-                {/* { users && (
-                    <div>
-                        <h1>Users</h1>
-                        <ul>
-                            {
-                                users.map((user: User) => (
-                                    <li key={user.id}>{user.firstName}</li>
-                                ))
-                            }
-                        </ul>
-                    </div>
-                ) } */}
             </Space>
         </>
     )
