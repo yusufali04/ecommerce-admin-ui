@@ -13,39 +13,46 @@ import { useMutation } from "@tanstack/react-query";
 import { logout } from "../http/api";
 
 const { Sider, Header, Content, Footer } = Layout;
-const items = [
-    {
-        key: '/',
-        icon: <Icon component={Home} />,
-        label: <NavLink to={"/"}>Home</NavLink>
-    },
-    {
-        key: '/users',
-        icon: <Icon component={User} />,
-        label: <NavLink to={"/users"}>Users</NavLink>
-    },
-    {
-        key: '/restaurants',
-        icon: <Icon component={Food} />,
-        label: <NavLink to={"/restaurants"}>Restaurants</NavLink>
-    },
-    {
-        key: '/products',
-        icon: <Icon component={Basket} />,
-        label: <NavLink to={"/products"}>Products</NavLink>
-    },
-    {
-        key: '/promos',
-        icon: <Icon component={Gift} />,
-        label: <NavLink to={"/promos"}>Promos</NavLink>
-    }
-]
 
+const getMenuItems = (role: string) => { 
+    const baseItems = [
+        {
+            key: '/',
+            icon: <Icon component={Home} />,
+            label: <NavLink to={"/"}>Home</NavLink>
+        },
+        {
+            key: '/restaurants',
+            icon: <Icon component={Food} />,
+            label: <NavLink to={"/restaurants"}>Restaurants</NavLink>
+        },
+        {
+            key: '/products',
+            icon: <Icon component={Basket} />,
+            label: <NavLink to={"/products"}>Products</NavLink>
+        },
+        {
+            key: '/promos',
+            icon: <Icon component={Gift} />,
+            label: <NavLink to={"/promos"}>Promos</NavLink>
+        }
+    ]
+    if(role === "admin") {
+        baseItems.splice(1, 0, {
+                key: '/users',
+                icon: <Icon component={User} />,
+                label: <NavLink to={"/users"}>Users</NavLink>
+            })
+    }
+    return baseItems;
+ }
 
 const Dashboard = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { logout: logoutFromStore, user } = useAuthStore();
     const {token: { colorBgContainer }} = theme.useToken();
+    const items = getMenuItems(user?.role as string);
+
     const { mutate: logoutMutate } = useMutation({
         mutationKey: ["logout"],
         mutationFn: logout,
