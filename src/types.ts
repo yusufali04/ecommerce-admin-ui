@@ -18,3 +18,12 @@ export interface User {
     tenant?: Tenant;
     updatedAt?: string;
 }
+
+export interface UserFormValues {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    role: string;
+    tenantId: number;
+}
