@@ -8,6 +8,7 @@ import { useAuthStore } from "../../store";
 import UsersFilters from "./UsersFilters";
 import { useState } from "react";
 import UserForm from "./forms/UserForm";
+import { PER_PAGE } from "../../constants";
 
 const columns = [
     {
@@ -46,12 +47,20 @@ const Users = () => {
     const [form] = Form.useForm();
     const queryClient = useQueryClient();
     const { token: { colorBgLayout } } = theme.useToken();
+    const [ queryParams, setQueryParam ] = useState({
+        perPage: PER_PAGE,
+        currentPage: 1,
+    });
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuthStore();
     const { data: users, isLoading, error } = useQuery({
-        queryKey: ['users'],
+        queryKey: ['users', queryParams],
         queryFn: async () => {
-            return getUsers().then((res) => res.data)
+            const queryString = new URLSearchParams({
+                perPage: queryParams.perPage.toString(),
+                currentPage: queryParams.currentPage.toString()
+            }).toString();
+            return getUsers(queryString).then((res) => res.data)
         }
     })
     const { mutate: createUserMutate } = useMutation({
@@ -85,7 +94,23 @@ const Users = () => {
                 }}>
                     <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add User</Button>
                 </UsersFilters>
-                <Table columns={columns} dataSource={users} rowKey="id" />
+                <Table 
+                columns={columns} 
+                pagination={{
+                    pageSize: queryParams.perPage,
+                    current: queryParams.currentPage,
+                    total: users?.total || 0,
+                    onChange: (page) => {
+                        setQueryParam(() => {
+                            return {
+                                ...queryParams,
+                                currentPage: page
+                            }
+                        });
+                    }
+                }} 
+                dataSource={users?.data} 
+                rowKey="id" />
                 <Drawer
                     styles={{body: { backgroundColor: colorBgLayout }}}
                     title="Create User"
