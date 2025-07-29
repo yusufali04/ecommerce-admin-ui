@@ -1,7 +1,7 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table, theme } from "antd";
-import { PlusOutlined, RightOutlined } from "@ant-design/icons"
+import { Breadcrumb, Button, Drawer, Flex, Form, Space, Spin, Table, theme, Typography } from "antd";
+import { LoadingOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons"
 import { Link, Navigate } from "react-router-dom";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createUser, getUsers } from "../../http/api";
 import { User, UserFormValues } from "../../types";
 import { useAuthStore } from "../../store";
@@ -53,7 +53,7 @@ const Users = () => {
     });
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuthStore();
-    const { data: users, isLoading, error } = useQuery({
+    const { data: users, isFetching, error } = useQuery({
         queryKey: ['users', queryParams],
         queryFn: async () => {
             const queryString = new URLSearchParams({
@@ -61,7 +61,8 @@ const Users = () => {
                 currentPage: queryParams.currentPage.toString()
             }).toString();
             return getUsers(queryString).then((res) => res.data)
-        }
+        },
+        placeholderData: keepPreviousData
     })
     const { mutate: createUserMutate } = useMutation({
         mutationFn: async (data: UserFormValues) => {return createUser(data).then((res) => res.data)},
@@ -86,9 +87,11 @@ const Users = () => {
     return (
         <>
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
-                <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Users"}]} />
-                {isLoading && <div>Loading...</div>}
-                {error && <div>{error && "Error while fetching users!"}</div>}
+                <Flex justify={"space-between"} align={"center"}>
+                    <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Users"}]} />
+                    {isFetching && (<Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />)}
+                    {error && <Typography.Text type="danger">{error && "Error while fetching users!"}</Typography.Text>}
+                </Flex>
                 <UsersFilters onFilterChange={(filterName, filterValue) => {
                     console.log("Filter changed:", filterName, filterValue);
                 }}>
