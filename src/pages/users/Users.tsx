@@ -3,7 +3,7 @@ import { LoadingOutlined, PlusOutlined, RightOutlined } from "@ant-design/icons"
 import { Link, Navigate } from "react-router-dom";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createUser, getUsers } from "../../http/api";
-import { User, UserFormValues } from "../../types";
+import { FieldData, User, UserFormValues } from "../../types";
 import { useAuthStore } from "../../store";
 import UsersFilters from "./UsersFilters";
 import { useState } from "react";
@@ -45,9 +45,10 @@ const columns = [
 
 const Users = () => {
     const [form] = Form.useForm();
+    const [ filterForm ] = Form.useForm();
     const queryClient = useQueryClient();
     const { token: { colorBgLayout } } = theme.useToken();
-    const [ queryParams, setQueryParam ] = useState({
+    const [ queryParams, setQueryParams ] = useState({
         perPage: PER_PAGE,
         currentPage: 1,
     });
@@ -56,10 +57,8 @@ const Users = () => {
     const { data: users, isFetching, error } = useQuery({
         queryKey: ['users', queryParams],
         queryFn: async () => {
-            const queryString = new URLSearchParams({
-                perPage: queryParams.perPage.toString(),
-                currentPage: queryParams.currentPage.toString()
-            }).toString();
+            const filteredParams = Object.fromEntries(Object.entries(queryParams).filter(item => !!item[1]));
+            const queryString = new URLSearchParams(filteredParams as unknown as Record<string, string>).toString();
             return getUsers(queryString).then((res) => res.data)
         },
         placeholderData: keepPreviousData
@@ -81,6 +80,15 @@ const Users = () => {
             console.error("Validation failed:", errorInfo);
         });
     }
+    const onFilterChange = (changedFields: FieldData[]) => {
+        const changedFilterFields = changedFields.map((field) => {
+            return {
+                [field.name[0]]: field.value
+            }
+        }).reduce((acc, curr) => ({...acc,...curr}), {});
+        setQueryParams((prev) => ({...prev, ...changedFilterFields}));
+
+    }
     if (user?.role !== "admin") {
         return <Navigate to="/" replace={true} />
     }
@@ -92,11 +100,11 @@ const Users = () => {
                     {isFetching && (<Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />)}
                     {error && <Typography.Text type="danger">{error && "Error while fetching users!"}</Typography.Text>}
                 </Flex>
-                <UsersFilters onFilterChange={(filterName, filterValue) => {
-                    console.log("Filter changed:", filterName, filterValue);
-                }}>
-                    <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add User</Button>
-                </UsersFilters>
+                <Form form={filterForm} onFieldsChange={onFilterChange}>
+                    <UsersFilters>
+                        <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add User</Button>
+                    </UsersFilters>
+                </Form>
                 <Table 
                 columns={columns} 
                 pagination={{
@@ -104,7 +112,7 @@ const Users = () => {
                     current: queryParams.currentPage,
                     total: users?.total || 0,
                     onChange: (page) => {
-                        setQueryParam(() => {
+                        setQueryParams(() => {
                             return {
                                 ...queryParams,
                                 currentPage: page
