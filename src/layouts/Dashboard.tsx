@@ -1,4 +1,4 @@
-import { Navigate, NavLink, Outlet } from "react-router-dom";
+import { Navigate, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store";
 import { Avatar, Badge, Dropdown, Flex, Layout, Menu, Space, theme } from "antd";
 import Icon, { BellFilled } from "@ant-design/icons";
@@ -48,6 +48,7 @@ const getMenuItems = (role: string) => {
  }
 
 const Dashboard = () => {
+    const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const { logout: logoutFromStore, user } = useAuthStore();
     const {token: { colorBgContainer }} = theme.useToken();
@@ -62,7 +63,7 @@ const Dashboard = () => {
         }
     })
     if(user === null) {
-        return <Navigate to="auth/login" replace={true}/>
+        return <Navigate to={`/auth/login?returnTo=${encodeURIComponent(location.pathname)}`} replace={true}/>
     }
     return <div>
         <Layout style={{ minHeight: '100vh' }}>
