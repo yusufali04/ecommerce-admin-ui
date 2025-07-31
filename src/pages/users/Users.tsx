@@ -117,6 +117,7 @@ const Users = () => {
                 <Table 
                 columns={columns} 
                 pagination={{
+                    showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
                     pageSize: queryParams.perPage,
                     current: queryParams.currentPage,
                     total: users?.total || 0,
