@@ -6,9 +6,10 @@ import { createUser, getUsers } from "../../http/api";
 import { FieldData, User, UserFormValues } from "../../types";
 import { useAuthStore } from "../../store";
 import UsersFilters from "./UsersFilters";
-import { useState } from "react";
+import React, { useState } from "react";
 import UserForm from "./forms/UserForm";
 import { PER_PAGE } from "../../constants";
+import { debounce } from "lodash";
 
 const columns = [
     {
@@ -80,14 +81,22 @@ const Users = () => {
             console.error("Validation failed:", errorInfo);
         });
     }
+    const debouncedQUpdate = React.useMemo(() => {
+        return debounce((value: string | undefined)=> {
+            setQueryParams((prev) => ({...prev, q: value}));
+        }, 1000)
+    }, []);
     const onFilterChange = (changedFields: FieldData[]) => {
         const changedFilterFields = changedFields.map((field) => {
             return {
                 [field.name[0]]: field.value
             }
         }).reduce((acc, curr) => ({...acc,...curr}), {});
-        setQueryParams((prev) => ({...prev, ...changedFilterFields}));
-
+        if('q' in changedFilterFields) {
+            debouncedQUpdate(changedFilterFields.q);
+        } else {
+            setQueryParams((prev) => ({...prev, ...changedFilterFields}));
+        }
     }
     if (user?.role !== "admin") {
         return <Navigate to="/" replace={true} />
