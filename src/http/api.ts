@@ -8,3 +8,4 @@ export const logout = () => api.post('/auth/logout');
 export const getUsers = (queryString: string) => api.get(`/users?${queryString}`);
 export const getTenants = () => api.get('/tenants');
 export const createUser = (userData: UserFormValues) => api.post('/users', userData);
+export const updateUser = (userId: string, userData: UserFormValues) => api.patch(`/users/${userId}`, userData);

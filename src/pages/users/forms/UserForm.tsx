@@ -3,7 +3,7 @@ import { Card, Col, Input, Row, Form, Space, Select } from "antd";
 import { getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
-const UserForm = () => {
+const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
     const { data: tenantsData, isLoading, error } = useQuery({
         queryKey: ['tenants'],
         queryFn: async () => {
@@ -39,24 +39,29 @@ const UserForm = () => {
                         </Col>
                     </Row>
                 </Card>
-                <Card title="Security Info">
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item label="Password" name="password" rules={[
-                                { required: true, message: 'Password is required' },
-                            ]}>
-                                <Input.Password />
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                </Card>
+                {
+                    !isEditMode && (
+                        <Card title="Security Info">
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Form.Item label="Password" name="password" rules={[
+                                        { required: true, message: 'Password is required' },
+                                    ]}>
+                                        <Input.Password />
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        </Card>
+                    )
+                }
+                
                 <Card title="Role">
                     <Row gutter={16}>
                         <Col span={12}>
                             <Form.Item label="Role" name="role" rules={[
                                 { required: true, message: 'Role is required' },
                             ]}>
-                                <Select placeholder="Select a role">
+                                <Select placeholder="Select a role" id="selectedBoxInUserForm">
                                     <Select.Option value="admin">Admin</Select.Option>
                                     <Select.Option value="customer">Customer</Select.Option>
                                     <Select.Option value="manager">Manager</Select.Option>
