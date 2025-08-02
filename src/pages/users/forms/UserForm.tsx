@@ -7,7 +7,7 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
     const { data: tenantsData, isLoading, error } = useQuery({
         queryKey: ['tenants'],
         queryFn: async () => {
-            return getTenants().then((res) => res.data)
+            return getTenants("").then((res) => res.data)
         }
     }) 
     return <Row>
@@ -76,7 +76,7 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                                     {
                                         isLoading ? <Select.Option value="">Loading...</Select.Option> :
                                         error ? <Select.Option value="">Error loading restaurants</Select.Option> :
-                                        tenantsData?.map((tenant: Tenant) => (
+                                        tenantsData?.data.map((tenant: Tenant) => (
                                             <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
                                         ))
                                     }

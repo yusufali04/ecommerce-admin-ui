@@ -144,7 +144,7 @@ const Users = () => {
                             <Button type="link" onClick={() => { setCurrentEditingUser(record); setDrawerOpen(true); }}>Edit</Button>
                         </Space>
                     ),
-                }]} 
+                    }]} 
                 pagination={{
                     showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
                     pageSize: queryParams.perPage,

@@ -1,11 +1,15 @@
-import { Breadcrumb, Button, Drawer, Space, Table } from "antd";
+import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons"
 import { Link, Navigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getTenants } from "../../http/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createTenant, getTenants, updateTenant } from "../../http/api";
 import { useAuthStore } from "../../store";
-import { useState } from "react";
+import React, { useState } from "react";
 import TenantsFilters from "./TenantsFilters";
+import { PER_PAGE } from "../../constants";
+import { debounce } from "lodash";
+import { FieldData, Tenant, TenantFormValues } from "../../types";
+import TenantForm from "./forms/TenantForm";
 
 const columns = [
     {
@@ -26,14 +30,80 @@ const columns = [
 ]
 
 const Tenants = () => {
+    const [ currentEditingTenant, setCurrentEditingTenant ] = useState<Tenant | null>(null);
+    const queryClient = useQueryClient();
+    const [ filterForm ] = Form.useForm();
+    const [ tenantForm ] = Form.useForm();
+    const [ queryParams, setQueryParams ] = useState({
+            perPage: PER_PAGE,
+            currentPage: 1,
+        });
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuthStore();
+    React.useEffect(() => {
+            if (currentEditingTenant) {
+                setDrawerOpen(true);
+                tenantForm.setFieldsValue({
+                    ...currentEditingTenant,
+                    tenantId: currentEditingTenant?.id
+                });
+            }
+    }, [currentEditingTenant, tenantForm]);
     const { data: tenantsData, isLoading, error } = useQuery({
-        queryKey: ['tenants'],
+        queryKey: ['tenants', queryParams],
         queryFn: async () => {
-            return getTenants().then((res) => res.data)
+            const filteredParams = Object.fromEntries(Object.entries(queryParams).filter(item => !!item[1]));
+            const queryString = new URLSearchParams(filteredParams as unknown as Record<string, string>).toString();
+            return getTenants(queryString).then((res) => res.data)
         }
-    }) 
+    });
+    const { mutate: createTenantMutate } = useMutation({
+            mutationFn: async (data: TenantFormValues) => {return createTenant(data as Tenant).then((res) => res.data)},
+            onSuccess: async () => {
+                queryClient.invalidateQueries({ queryKey: ['tenants'] });
+                return;
+            },
+    });
+    const { mutate: updateTenantMutate } = useMutation({
+            mutationFn: async (data: TenantFormValues) => {
+                return updateTenant(String(currentEditingTenant!.id), data).then((res) => res.data);
+            },
+            onSuccess: async () => {
+                queryClient.invalidateQueries({ queryKey: ['tenants'] });
+                return;
+            },
+    });
+    const debouncedQUpdate = React.useMemo(() => {
+            return debounce((value: string | undefined)=> {
+                setQueryParams((prev) => ({...prev, q: value, currentPage: 1}));
+            }, 500)
+        }, []);
+        const onFilterChange = (changedFields: FieldData[]) => {
+            const changedFilterFields = changedFields.map((field) => {
+                return {
+                    [field.name[0]]: field.value
+                }
+            }).reduce((acc, curr) => ({...acc,...curr}), {});
+            console.log(changedFilterFields);
+            
+            if('q' in changedFilterFields) {
+                debouncedQUpdate(changedFilterFields.q);
+            } else {
+                setQueryParams((prev) => ({...prev, ...changedFilterFields, currentPage: 1}));
+            }
+        }
+        const handleSubmit = async () => {
+            const isEditMode = !!currentEditingTenant;
+            await tenantForm.validateFields();
+            if (isEditMode) {
+                await updateTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
+            } else {
+                await createTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
+            }
+            setCurrentEditingTenant(null);
+            setDrawerOpen(false);
+            tenantForm.resetFields();
+        }
     if (user?.role !== "admin") {
         return <Navigate to="/" replace={true} />
     }
@@ -43,31 +113,62 @@ const Tenants = () => {
                 <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Restaurants"}]} />
                 {isLoading && <div>Loading...</div>}
                 {error && <div>{error && "Error while fetching restaurants!"}</div>}
-                <TenantsFilters onFilterChange={(filterName, filterValue) => {
-                    console.log("Filter changed:", filterName, filterValue);
-                }}>
-                    <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add Restaurant</Button>
-                </TenantsFilters>
-                <Table columns={columns} dataSource={tenantsData} rowKey="id" />
+                <Form form={filterForm} onFieldsChange={onFilterChange}>
+                    <TenantsFilters>
+                        <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add Restaurant</Button>
+                    </TenantsFilters>
+                </Form>
+                
+                <Table 
+                    columns={[...columns, 
+                        {
+                            title: "Actions",
+                            key: "actions",
+                            render: (_text: string, record: Tenant) => (
+                                <Space>
+                                    <Button type="link" onClick={() => { setCurrentEditingTenant(record); setDrawerOpen(true); }}>Edit</Button>
+                                </Space>
+                            ),
+                        }
+                    ]} 
+                    dataSource={tenantsData?.data} 
+                    rowKey="id"
+                    
+                    pagination={{
+                    showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
+                    pageSize: queryParams.perPage,
+                    current: queryParams.currentPage,
+                    total: tenantsData?.total || 0,
+                    onChange: (page) => {
+                        setQueryParams(() => {
+                            return {
+                                ...queryParams,
+                                currentPage: page
+                            }
+                        });
+                    }
+                }}   />
                 <Drawer
-                    title="Create Restaurant"
+                    title={currentEditingTenant ? "Edit Restaurant" : "Create Restaurant"}
                     placement="right"
                     width={720}
                     destroyOnHidden={true}
                     open={drawerOpen}
-                    onClose={() => { setDrawerOpen(false); }}
+                    onClose={() => { setDrawerOpen(false); setCurrentEditingTenant(null); tenantForm.resetFields(); }}
                     extra={
                         <Space>
-                            <Button onClick={() => { setDrawerOpen(false); }}>
+                            <Button onClick={() => { setDrawerOpen(false); setCurrentEditingTenant(null); tenantForm.resetFields(); }}>
                                 Cancel
                             </Button>
-                            <Button onClick={() => {}} type="primary">
+                            <Button onClick={handleSubmit} type="primary">
                                 Submit
                             </Button>
                         </Space>
                     }
                 >
-                    <p>Content</p>
+                    <Form form={tenantForm}>
+                        <TenantForm />
+                    </Form>
                 </Drawer>
             </Space>
         </>

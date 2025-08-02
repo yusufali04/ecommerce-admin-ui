@@ -32,3 +32,8 @@ export type FieldData = {
     name: string[];
     value?: string;
 }
+
+export type TenantFormValues = {
+    name: string;
+    address: string;
+}

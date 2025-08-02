@@ -1,17 +1,19 @@
 import { Card, Col, Input, Row } from "antd";
+import { Form } from "antd";
 
-type UsersFiltersProps = {
-    onFilterChange: (filterName: string, filterValue: string) => void;
+type TenantsFiltersProps = {
     children?: React.ReactNode;
 }
 
-const UsersFilters = ({ onFilterChange, children }: UsersFiltersProps) => {
+const TenantsFilters = ({ children }: TenantsFiltersProps) => {
     return (
         <Card>
             <Row>
                 <Col span={16}>
                     <Col>
-                        <Input.Search allowClear={true} placeholder="Search restaurants..." style={{ width: "50%" }} onChange={(e) => onFilterChange("searchFilter", e.target.value)} />
+                    <Form.Item name="q">
+                        <Input.Search allowClear={true} placeholder="Search restaurants..." style={{ width: "50%" }} />
+                    </Form.Item>
                     </Col>
                 </Col>
                 <Col span={8} style={{display: "flex", justifyContent: "flex-end"}}>
@@ -22,4 +24,4 @@ const UsersFilters = ({ onFilterChange, children }: UsersFiltersProps) => {
     )
 }
 
-export default UsersFilters;
+export default TenantsFilters;
