@@ -4,6 +4,7 @@ import { getTenants } from "../../../http/api";
 import { Tenant } from "../../../types";
 
 const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
+    const selectedRole = Form.useWatch("role");
     const { data: tenantsData, isLoading, error } = useQuery({
         queryKey: ['tenants'],
         queryFn: async () => {
@@ -61,28 +62,32 @@ const UserForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                             <Form.Item label="Role" name="role" rules={[
                                 { required: true, message: 'Role is required' },
                             ]}>
-                                <Select placeholder="Select a role" id="selectedBoxInUserForm">
+                                <Select placeholder="Select a role" id="selectedBoxInUserForm" allowClear>
                                     <Select.Option value="admin">Admin</Select.Option>
-                                    <Select.Option value="customer">Customer</Select.Option>
                                     <Select.Option value="manager">Manager</Select.Option>
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={12}>
-                            <Form.Item label="Restaurant" name="tenantId" rules={[
-                                { required: true, message: 'Restaurant is required' },
-                            ]}>
-                                <Select placeholder="Select a restaurant" showSearch optionFilterProp="children">
-                                    {
-                                        isLoading ? <Select.Option value="">Loading...</Select.Option> :
-                                        error ? <Select.Option value="">Error loading restaurants</Select.Option> :
-                                        tenantsData?.data.map((tenant: Tenant) => (
-                                            <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
-                                        ))
-                                    }
-                                </Select>
-                            </Form.Item>
-                        </Col>
+                        {
+                            selectedRole === 'manager' && (
+                                <Col span={12}>
+                                    <Form.Item label="Restaurant" name="tenantId" rules={[
+                                        { required: true, message: 'Restaurant is required' },
+                                    ]}>
+                                        <Select placeholder="Select a restaurant" showSearch optionFilterProp="children">
+                                            {
+                                                isLoading ? <Select.Option value="">Loading...</Select.Option> :
+                                                error ? <Select.Option value="">Error loading restaurants</Select.Option> :
+                                                tenantsData?.data.map((tenant: Tenant) => (
+                                                    <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
+                                                ))
+                                            }
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                            )
+                        }
+                        
                     </Row>
                 </Card>
             </Space>
