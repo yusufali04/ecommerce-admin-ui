@@ -29,7 +29,7 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
                             </Form.Item>
                         </Col>
                         <Col span={6}>
-                            <Form.Item name={"category"}>
+                            <Form.Item name={"categoryId"}>
                                 <Select placeholder="Category" style={{ width: "100%" }} allowClear={true}>
                                     {
                                         categories?.data.map((category: Category) => {
@@ -40,7 +40,7 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
                             </Form.Item>
                         </Col>
                         <Col span={6}>
-                            <Form.Item name={"restaurant"}>
+                            <Form.Item name={"tenantId"}>
                                 <Select placeholder="Restaurants" style={{ width: "100%" }} allowClear={true}>
                                     {
                                         restaurants?.data.data.map((restaurant: Tenant) => {
@@ -51,12 +51,12 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
                             </Form.Item>
                         </Col>
                         <Col span={6}>
-                            <Form.Item>
-                                <Space>
-                                    <Switch defaultChecked onChange={() => {}} />
-                                    <Typography.Text>Show only published</Typography.Text>
-                                </Space>
-                            </Form.Item>
+                        <Space>
+                                <Form.Item name={"isPublished"} valuePropName="checked" noStyle>
+                                        <Switch defaultChecked/>
+                                </Form.Item>
+                                <Typography.Text>Show only published</Typography.Text>
+                            </Space>
                         </Col>
                     </Row>
                 </Col>
