@@ -58,3 +58,15 @@ export interface Category {
     priceConfiguration: PriceConfiguration;
     attributes: Attribute[];
 }
+
+export interface Product {
+    _id: string;
+    name: string;
+    description: string;
+    priceConfiguration: string;
+    attributes: string;
+    tenantId: string;
+    categoryId: Category;
+    image: string;
+    isPublished: string;
+}
