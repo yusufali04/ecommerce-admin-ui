@@ -1,5 +1,5 @@
-import { Breadcrumb, Button, Flex, Form, Image, Space, Table, Tag, Typography } from "antd";
-import { RightOutlined, PlusOutlined } from "@ant-design/icons";
+import { Breadcrumb, Button, Flex, Form, Image, Space, Spin, Table, Tag, Typography } from "antd";
+import { RightOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import ProductsFilters from "./ProductsFilters";
 import React, { useState } from "react";
@@ -63,7 +63,7 @@ const Products = () => {
             currentPage: 1,
             isPublished: true
         });
-    const { data: products } = useQuery({
+    const { data: products, isFetching, error } = useQuery({
         queryKey: ['products', queryParams],
         queryFn: async () => {
             const filteredParams = Object.fromEntries(Object.entries(queryParams).filter(item => !!item[1]));
@@ -96,6 +96,8 @@ const Products = () => {
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
                 <Flex justify={"space-between"} align={"center"}>
                     <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Products"}]} />
+                    {isFetching && (<Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />)}
+                    {error && <Typography.Text type="danger">{error && "Error while fetching products!"}</Typography.Text>}
                 </Flex>
                 <Form form={filterForm} onFieldsChange={onFilterChange}>
                     <ProductsFilters>
