@@ -1,15 +1,16 @@
-import { Breadcrumb, Button, Flex, Form, Image, Space, Spin, Table, Tag, Typography } from "antd";
+import { Breadcrumb, Button, Drawer, Flex, Form, Image, Space, Spin, Table, Tag, theme, Typography } from "antd";
 import { RightOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import ProductsFilters from "./ProductsFilters";
 import React, { useState } from "react";
 import { PER_PAGE } from "../../constants";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getProducts } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
+import ProductForm from "./forms/ProductForm";
 
 const columns = [
     {
@@ -58,8 +59,22 @@ const columns = [
 ]
 
 const Products = () => {
+    const [ currentEditingProduct, setCurrentEditingProduct ] = useState<Product | null>(null);
     const { user } = useAuthStore();
     const [ filterForm ] = Form.useForm();
+    const [form] = Form.useForm();
+    const { token: { colorBgLayout } } = theme.useToken();
+    const [drawerOpen, setDrawerOpen] = useState(false);
+    const queryClient = useQueryClient();
+    React.useEffect(() => {
+        if (currentEditingProduct) {
+            setDrawerOpen(true);
+            form.setFieldsValue({
+                ...currentEditingProduct,
+                tenantId: currentEditingProduct.tenant?.id
+            });
+        }
+    }, [currentEditingProduct, form]);
     const [ queryParams, setQueryParams ] = useState({
             perPage: PER_PAGE,
             currentPage: 1,
@@ -93,7 +108,34 @@ const Products = () => {
             setQueryParams((prev) => ({...prev, ...changedFilterFields, currentPage: 1}));
         }
     }
-
+    // const { mutate: createUserMutate } = useMutation({
+    //     mutationFn: async (data: ProductFormValues) => {return createUser(data).then((res) => res.data)},
+    //     onSuccess: async () => {
+    //         queryClient.invalidateQueries({ queryKey: ['users'] });
+    //         return;
+    //     },
+    // });
+    // const { mutate: updateProductMutate } = useMutation({
+    //     mutationFn: async (data: ProductFormValues) => {
+    //         return updateUser(String(currentEditingProduct!.id), data).then((res) => res.data);
+    //     },
+    //     onSuccess: async () => {
+    //         queryClient.invalidateQueries({ queryKey: ['users'] });
+    //         return;
+    //     },
+    // });
+    // const handleSubmit = async () => {
+    //         const isEditMode = !!currentEditingProduct;
+    //         await form.validateFields();
+    //         if (isEditMode) {
+    //             await updateProductMutate(form.getFieldsValue() as UserFormValues);
+    //         } else {
+    //             await updateProductMutate(form.getFieldsValue() as UserFormValues);
+    //         }
+    //         setCurrentEditingProduct(null);
+    //         setDrawerOpen(false);
+    //         form.resetFields();
+    // }
     return (
         <>
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
@@ -104,16 +146,16 @@ const Products = () => {
                 </Flex>
                 <Form form={filterForm} onFieldsChange={onFilterChange}>
                     <ProductsFilters>
-                        <Button icon={<PlusOutlined />} type="primary" onClick={() => {}}>Add Product</Button>
+                        <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add Product</Button>
                     </ProductsFilters>
                 </Form>
                 <Table 
                     columns={[...columns, {
                     title: 'Actions',
                     key: 'actions',
-                    render: () => (
+                    render: (_text: string, record: Product) => (
                         <Space>
-                            <Button type="link" onClick={() => { }}>Edit</Button>
+                            <Button type="link" onClick={() => { setCurrentEditingProduct(record); setDrawerOpen(true); }}>Edit</Button>
                         </Space>
                     ),
                     }]} 
@@ -133,6 +175,36 @@ const Products = () => {
                 }} 
                 dataSource={products?.data} 
                 rowKey="_id" />
+                <Drawer
+                    styles={{body: { backgroundColor: colorBgLayout }}}
+                    title={"Add product"}
+                    placement="right"
+                    width={720}
+                    destroyOnHidden={true}
+                    open={drawerOpen}
+                    onClose={() => { 
+                        setDrawerOpen(false); 
+                        form.resetFields();
+                        setCurrentEditingProduct(null);
+                    }}
+                    extra={
+                        <Space>
+                            <Button onClick={() => { 
+                                setDrawerOpen(false); 
+                                form.resetFields(); 
+                            }}>
+                                Cancel
+                            </Button>
+                            <Button onClick={() => {}} type="primary">
+                                Submit
+                            </Button>
+                        </Space>
+                    }
+                >
+                    <Form layout="vertical" form={form}>
+                        <ProductForm isEditMode={!!currentEditingProduct}/>
+                    </Form>
+                </Drawer>
             </Space>
         </>
     )

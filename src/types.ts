@@ -70,3 +70,8 @@ export interface Product {
     image: string;
     isPublished: string;
 }
+
+export interface CategoryPriceConfiguration {
+    priceType: "base" | "additional";
+    availableOptions: string[];
+}

@@ -25,7 +25,7 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
             <Row>
                 <Col span={16}>
                     <Row gutter={20}>
-                        <Col span={6}>
+                        <Col span={6} >
                             <Form.Item name="q">
                                 <Input.Search allowClear={true} placeholder="Search products..." style={{ width: "100%" }} />
                             </Form.Item>
@@ -58,11 +58,11 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
 
                         }       
                         <Col span={6}>
-                        <Space>
-                                <Form.Item name={"isPublished"} valuePropName="checked" noStyle>
-                                        <Switch defaultChecked/>
-                                </Form.Item>
-                                <Typography.Text>Show only published</Typography.Text>
+                            <Space>
+                                    <Form.Item name={"isPublished"} valuePropName="checked" noStyle>
+                                            <Switch defaultChecked/>
+                                    </Form.Item>
+                                    <Typography.Text>Show only published</Typography.Text>
                             </Space>
                         </Col>
                     </Row>
