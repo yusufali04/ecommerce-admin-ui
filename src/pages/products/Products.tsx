@@ -9,6 +9,7 @@ import { getProducts } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
+import { useAuthStore } from "../../store";
 
 const columns = [
     {
@@ -57,11 +58,13 @@ const columns = [
 ]
 
 const Products = () => {
+    const { user } = useAuthStore();
     const [ filterForm ] = Form.useForm();
     const [ queryParams, setQueryParams ] = useState({
             perPage: PER_PAGE,
             currentPage: 1,
-            isPublished: true
+            isPublished: true,
+            tenantId: user!.role === 'manager' ? user!.tenant?.id : undefined
         });
     const { data: products, isFetching, error } = useQuery({
         queryKey: ['products', queryParams],

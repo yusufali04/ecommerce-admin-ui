@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, Col, Form, Input, Row, Select, Space, Switch, Typography } from "antd";
 import { getCategories, getTenants } from "../../http/api";
 import { Category, Tenant } from "../../types";
+import { useAuthStore } from "../../store";
 
 type ProductsFiltersProps = {
     children?: React.ReactNode;
@@ -9,6 +10,7 @@ type ProductsFiltersProps = {
 
 const ProductsFilters = ({ children }: ProductsFiltersProps) => {
 
+    const { user } = useAuthStore();
     const { data: restaurants } = useQuery({
         queryKey: ["restaurants"],
         queryFn: () => getTenants("perPage=100&currentPage=1"),
@@ -39,17 +41,22 @@ const ProductsFilters = ({ children }: ProductsFiltersProps) => {
                                 </Select>
                             </Form.Item>
                         </Col>
-                        <Col span={6}>
-                            <Form.Item name={"tenantId"}>
-                                <Select placeholder="Restaurants" style={{ width: "100%" }} allowClear={true}>
-                                    {
-                                        restaurants?.data.data.map((restaurant: Tenant) => {
-                                            return <Select.Option key={restaurant.id} value={restaurant.id}>{restaurant.name}</Select.Option>
-                                        })
-                                    }
-                                </Select>
-                            </Form.Item>
-                        </Col>
+                        {
+                            user!.role === 'admin' && (
+                                <Col span={6}>
+                                    <Form.Item name={"tenantId"}>
+                                        <Select placeholder="Restaurants" style={{ width: "100%" }} allowClear={true}>
+                                            {
+                                                restaurants?.data.data.map((restaurant: Tenant) => {
+                                                    return <Select.Option key={restaurant.id} value={restaurant.id}>{restaurant.name}</Select.Option>
+                                                })
+                                            }
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                            )
+
+                        }       
                         <Col span={6}>
                         <Space>
                                 <Form.Item name={"isPublished"} valuePropName="checked" noStyle>
