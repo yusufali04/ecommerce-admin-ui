@@ -6,7 +6,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
 
-const ProductForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
+const ProductForm = () => {
     const selectedCategory = Form.useWatch("categoryId");
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useQuery({
         queryKey: ["categories"],
@@ -95,7 +95,7 @@ const ProductForm = ({ isEditMode = false }: { isEditMode: boolean }) => {
                 }
                 {
                     selectedCategory && (
-                        <Attributes />
+                        <Attributes selectedCategory={selectedCategory} />
                     )
                 }
                 <Card title="Other Properties">
