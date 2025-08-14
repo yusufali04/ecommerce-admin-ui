@@ -110,7 +110,7 @@ const Products = () => {
             setQueryParams((prev) => ({ ...prev, ...changedFilterFields, currentPage: 1 }));
         }
     }
-    const { mutate: productMutate } = useMutation({
+    const { mutate: productMutate, isPending: isCreateLoading } = useMutation({
         mutationFn: async (data: FormData) => { return createProduct(data).then((res) => res.data) },
         onSuccess: async () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -203,7 +203,7 @@ const Products = () => {
                             }}>
                                 Cancel
                             </Button>
-                            <Button onClick={handleSubmit} type="primary">
+                            <Button onClick={handleSubmit} type="primary" loading={isCreateLoading}>
                                 Submit
                             </Button>
                         </Space>
