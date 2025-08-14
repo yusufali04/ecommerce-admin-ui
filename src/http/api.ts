@@ -17,3 +17,6 @@ export const updateUser = (userId: string, userData: UserFormValues) => api.patc
 // Catalog Service
 export const getCategories = () => api.get(`${CATALOG_SERVICE}/categories`)
 export const getProducts = (queryString: string) => api.get(`${CATALOG_SERVICE}/products?${queryString}`);
+export const createProduct = (data: FormData) => api.post(`${CATALOG_SERVICE}/products`, data, {
+    headers: { "Content-Type": "multipart/form-data" }
+});

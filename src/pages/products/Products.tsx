@@ -4,13 +4,14 @@ import { Link } from "react-router-dom";
 import ProductsFilters from "./ProductsFilters";
 import React, { useState } from "react";
 import { PER_PAGE } from "../../constants";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getProducts } from "../../http/api";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createProduct, getProducts } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
 import { useAuthStore } from "../../store";
 import ProductForm from "./forms/ProductForm";
+import { makeFormData } from "./helpers";
 
 const columns = [
     {
@@ -59,7 +60,8 @@ const columns = [
 ]
 
 const Products = () => {
-    const [currentEditingProduct, setCurrentEditingProduct] = useState<Product | null>(null);
+    // const [currentEditingProduct, setCurrentEditingProduct] = useState<Product | null>(null);
+    const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const [filterForm] = Form.useForm();
     const [form] = Form.useForm();
@@ -108,34 +110,46 @@ const Products = () => {
             setQueryParams((prev) => ({ ...prev, ...changedFilterFields, currentPage: 1 }));
         }
     }
-    // const { mutate: createUserMutate } = useMutation({
-    //     mutationFn: async (data: ProductFormValues) => {return createUser(data).then((res) => res.data)},
-    //     onSuccess: async () => {
-    //         queryClient.invalidateQueries({ queryKey: ['users'] });
-    //         return;
-    //     },
-    // });
-    // const { mutate: updateProductMutate } = useMutation({
-    //     mutationFn: async (data: ProductFormValues) => {
-    //         return updateUser(String(currentEditingProduct!.id), data).then((res) => res.data);
-    //     },
-    //     onSuccess: async () => {
-    //         queryClient.invalidateQueries({ queryKey: ['users'] });
-    //         return;
-    //     },
-    // });
-    // const handleSubmit = async () => {
-    //         const isEditMode = !!currentEditingProduct;
-    //         await form.validateFields();
-    //         if (isEditMode) {
-    //             await updateProductMutate(form.getFieldsValue() as UserFormValues);
-    //         } else {
-    //             await updateProductMutate(form.getFieldsValue() as UserFormValues);
-    //         }
-    //         setCurrentEditingProduct(null);
-    //         setDrawerOpen(false);
-    //         form.resetFields();
-    // }
+    const { mutate: productMutate } = useMutation({
+        mutationFn: async (data: FormData) => { return createProduct(data).then((res) => res.data) },
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            setDrawerOpen(false);
+            form.resetFields();
+            return;
+        },
+    });
+    const handleSubmit = async () => {
+        await form.validateFields();
+        const priceConfiguration = form.getFieldValue('priceConfiguration')
+        const pricing = Object.entries(priceConfiguration).reduce((acc, [key, value]) => {
+            const parsedKey = JSON.parse(key);
+            return {
+                ...acc,
+                [parsedKey.configurationKey]: {
+                    priceType: parsedKey.priceType,
+                    availableOptions: value
+                }
+            }
+        }, {});
+        const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+        const attributes = Object.entries(form.getFieldValue('attributes')).map(([key, value]) => {
+            return {
+                name: key,
+                value: value
+            }
+        })
+        const postData = {
+            ...form.getFieldsValue(),
+            isPublished: form.getFieldValue('isPublished') ? true : false,
+            image: form.getFieldValue('image'),
+            categoryId,
+            priceConfiguration: pricing,
+            attributes,
+        }
+        const formData = makeFormData(postData);
+        await productMutate(formData);
+    }
     return (
         <>
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
@@ -152,12 +166,7 @@ const Products = () => {
                 <Table
                     columns={[...columns, {
                         title: 'Actions',
-                        key: 'actions',
-                        render: (_text: string, record: Product) => (
-                            <Space>
-                                <Button type="link" onClick={() => { setCurrentEditingProduct(record); setDrawerOpen(true); }}>Edit</Button>
-                            </Space>
-                        ),
+                        key: 'actions'
                     }]}
                     pagination={{
                         showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
@@ -185,7 +194,6 @@ const Products = () => {
                     onClose={() => {
                         setDrawerOpen(false);
                         form.resetFields();
-                        setCurrentEditingProduct(null);
                     }}
                     extra={
                         <Space>
@@ -195,14 +203,14 @@ const Products = () => {
                             }}>
                                 Cancel
                             </Button>
-                            <Button onClick={() => { }} type="primary">
+                            <Button onClick={handleSubmit} type="primary">
                                 Submit
                             </Button>
                         </Space>
                     }
                 >
                     <Form layout="vertical" form={form}>
-                        <ProductForm isEditMode={!!currentEditingProduct} />
+                        <ProductForm />
                     </Form>
                 </Drawer>
             </Space>
