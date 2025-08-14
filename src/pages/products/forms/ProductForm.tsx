@@ -1,15 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, Col, Input, Row, Form, Space, Select, Upload, Typography, Switch, UploadProps, message } from "antd";
+import { Card, Col, Input, Row, Form, Space, Select, Typography, Switch } from "antd";
 import { getCategories, getTenants } from "../../../http/api";
 import { Category, Tenant } from "../../../types";
-import { PlusOutlined } from "@ant-design/icons";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
-import { useState } from "react";
+import ProductImage from "./ProductImage";
 
 const ProductForm = () => {
-    const [messageApi, contextHolder] = message.useMessage();
-    const [imageUrl, setImageUrl] = useState<string | null>(null);
+
     const selectedCategory = Form.useWatch("categoryId");
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useQuery({
         queryKey: ["categories"],
@@ -19,21 +17,7 @@ const ProductForm = () => {
         queryKey: ["restaurants"],
         queryFn: () => getTenants("perPage=100&currentPage=1"),
     })
-    const uploaderConfig: UploadProps = {
-        name: 'image',
-        multiple: false,
-        showUploadList: false,
-        beforeUpload: (file) => {
-            const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-            if (!isJpgOrPng) {
-                console.error('Only JPG/PNG images are allowed');
-                messageApi.error('Only JPG/PNG images are allowed')
-            }
-            setImageUrl(URL.createObjectURL(file))
-            return false;
-        },
 
-    }
     return <Row>
         <Col span={24}>
             <Space direction="vertical" size={"large"}>
@@ -74,23 +58,7 @@ const ProductForm = () => {
                 <Card title="Product Image">
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Form.Item label="" name="image" rules={[
-                                { required: true, message: 'Image is required' },
-
-                            ]}>
-                                {contextHolder}
-                                <Upload listType="picture-card" {...uploaderConfig}>
-                                    {
-                                        imageUrl ?
-                                            (<img src={imageUrl} alt="image" style={{ width: '100%' }} />)
-                                            :
-                                            (<Space direction="vertical">
-                                                <PlusOutlined />
-                                                <Typography.Text>Upload</Typography.Text>
-                                            </Space>)
-                                    }
-                                </Upload>
-                            </Form.Item>
+                            <ProductImage />
                         </Col>
                     </Row>
                 </Card>
