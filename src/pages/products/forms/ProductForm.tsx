@@ -5,9 +5,10 @@ import { Category, Tenant } from "../../../types";
 import Pricing from "./Pricing";
 import Attributes from "./Attributes";
 import ProductImage from "./ProductImage";
+import { useAuthStore } from "../../../store";
 
 const ProductForm = () => {
-
+    const { user } = useAuthStore()
     const selectedCategory = Form.useWatch("categoryId");
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useQuery({
         queryKey: ["categories"],
@@ -62,25 +63,30 @@ const ProductForm = () => {
                         </Col>
                     </Row>
                 </Card>
-                <Card title="Tenant Info">
-                    <Row gutter={16}>
-                        <Col span={12}>
-                            <Form.Item label="Restaurant" name="tenantId" rules={[
-                                { required: true, message: 'Restaurant is required' },
-                            ]}>
-                                <Select placeholder="Select a restaurant" showSearch optionFilterProp="children">
-                                    {
-                                        isLoadingRestaurants ? <Select.Option value="">Loading...</Select.Option> :
-                                            restaurantsError ? <Select.Option value="">Error loading restaurants</Select.Option> :
-                                                restaurants?.data.data.map((tenant: Tenant) => (
-                                                    <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
-                                                ))
-                                    }
-                                </Select>
-                            </Form.Item>
-                        </Col>
-                    </Row>
-                </Card>
+                {
+                    user?.role != 'manager' && (
+                        <Card title="Tenant Info">
+                            <Row gutter={16}>
+                                <Col span={12}>
+                                    <Form.Item label="Restaurant" name="tenantId" rules={[
+                                        { required: true, message: 'Restaurant is required' },
+                                    ]}>
+                                        <Select placeholder="Select a restaurant" showSearch optionFilterProp="children">
+                                            {
+                                                isLoadingRestaurants ? <Select.Option value="">Loading...</Select.Option> :
+                                                    restaurantsError ? <Select.Option value="">Error loading restaurants</Select.Option> :
+                                                        restaurants?.data.data.map((tenant: Tenant) => (
+                                                            <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
+                                                        ))
+                                            }
+                                        </Select>
+                                    </Form.Item>
+                                </Col>
+                            </Row>
+                        </Card>
+                    )
+                }
+
                 {
                     selectedCategory && (
                         <Pricing selectedCategory={selectedCategory} />
