@@ -59,12 +59,17 @@ export interface Category {
     attributes: Attribute[];
 }
 
+export type ProductAttribute = {
+    name: string;
+    value: string | boolean;
+}
+
 export interface Product {
     _id: string;
     name: string;
     description: string;
-    priceConfiguration: string;
-    attributes: string;
+    priceConfiguration: PriceConfiguration;
+    attributes: ProductAttribute[];
     tenantId: string;
     categoryId: Category;
     image: string;

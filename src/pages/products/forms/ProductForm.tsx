@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Card, Col, Input, Row, Form, Space, Select, Typography, Switch } from "antd";
+import { Card, Col, Input, Row, Form, Space, Select, Typography, Switch, FormInstance } from "antd";
 import { getCategories, getTenants } from "../../../http/api";
 import { Category, Tenant } from "../../../types";
 import Pricing from "./Pricing";
@@ -7,7 +7,7 @@ import Attributes from "./Attributes";
 import ProductImage from "./ProductImage";
 import { useAuthStore } from "../../../store";
 
-const ProductForm = () => {
+const ProductForm = ({ form }: { form: FormInstance }) => {
     const { user } = useAuthStore()
     const selectedCategory = Form.useWatch("categoryId");
     const { data: categories, isLoading: isLoadingCategories, error: categoriesError } = useQuery({
@@ -18,6 +18,7 @@ const ProductForm = () => {
         queryKey: ["restaurants"],
         queryFn: () => getTenants("perPage=100&currentPage=1"),
     })
+    console.log("Image in Form: ", form.getFieldValue("image"));
 
     return <Row>
         <Col span={24}>
@@ -40,7 +41,7 @@ const ProductForm = () => {
                                         isLoadingCategories ? <Select.Option value="">Loading...</Select.Option> :
                                             categoriesError ? <Select.Option value="">Error loading categories</Select.Option> :
                                                 categories?.data.map((category: Category) => (
-                                                    <Select.Option key={category._id} value={JSON.stringify(category)}>{category.name}</Select.Option>
+                                                    <Select.Option key={category._id} value={category._id}>{category.name}</Select.Option>
                                                 ))
                                     }
                                 </Select>
@@ -59,7 +60,7 @@ const ProductForm = () => {
                 <Card title="Product Image">
                     <Row gutter={16}>
                         <Col span={12}>
-                            <ProductImage />
+                            <ProductImage initialImage={form.getFieldValue('image')} />
                         </Col>
                     </Row>
                 </Card>
@@ -76,7 +77,7 @@ const ProductForm = () => {
                                                 isLoadingRestaurants ? <Select.Option value="">Loading...</Select.Option> :
                                                     restaurantsError ? <Select.Option value="">Error loading restaurants</Select.Option> :
                                                         restaurants?.data.data.map((tenant: Tenant) => (
-                                                            <Select.Option key={tenant.id} value={tenant.id}>{tenant.name}</Select.Option>
+                                                            <Select.Option key={tenant.id} value={String(tenant.id)}>{tenant.name}</Select.Option>
                                                         ))
                                             }
                                         </Select>

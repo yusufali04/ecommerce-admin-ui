@@ -2,10 +2,10 @@ import { Breadcrumb, Button, Drawer, Flex, Form, Image, Space, Spin, Table, Tag,
 import { RightOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import ProductsFilters from "./ProductsFilters";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PER_PAGE } from "../../constants";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createProduct, getProducts } from "../../http/api";
+import { createProduct, getProducts, updateProduct } from "../../http/api";
 import { FieldData, Product } from "../../types";
 import { format } from "date-fns";
 import { debounce } from "lodash";
@@ -60,23 +60,41 @@ const columns = [
 ]
 
 const Products = () => {
-    // const [currentEditingProduct, setCurrentEditingProduct] = useState<Product | null>(null);
+    const [currentEditingProduct, setCurrentEditingProduct] = useState<Product | null>(null);
     const queryClient = useQueryClient();
     const { user } = useAuthStore();
     const [filterForm] = Form.useForm();
     const [form] = Form.useForm();
     const { token: { colorBgLayout } } = theme.useToken();
     const [drawerOpen, setDrawerOpen] = useState(false);
-    // const queryClient = useQueryClient();
-    // React.useEffect(() => {
-    //     if (currentEditingProduct) {
-    //         setDrawerOpen(true);
-    //         form.setFieldsValue({
-    //             ...currentEditingProduct,
-    //             tenantId: currentEditingProduct.tenant?.id
-    //         });
-    //     }
-    // }, [currentEditingProduct, form]);
+    useEffect(() => {
+        if (currentEditingProduct) {
+            const priceConfiguration = Object.entries(currentEditingProduct?.priceConfiguration).reduce((acc, [key, value]) => {
+                const stringifiedKey = JSON.stringify({
+                    configurationKey: key,
+                    priceType: value.priceType
+                })
+                return {
+                    ...acc,
+                    [stringifiedKey]: value.availableOptions
+                }
+            }, {})
+            const attributes = currentEditingProduct.attributes.reduce((acc, item) => {
+                return {
+                    ...acc,
+                    [item.name]: item.value
+                }
+            }, {})
+            console.log(currentEditingProduct);
+
+            form.setFieldsValue({
+                ...currentEditingProduct,
+                priceConfiguration,
+                attributes,
+                categoryId: currentEditingProduct.categoryId
+            })
+        }
+    }, [currentEditingProduct, form]);
     const [queryParams, setQueryParams] = useState({
         perPage: PER_PAGE,
         currentPage: 1,
@@ -111,13 +129,19 @@ const Products = () => {
         }
     }
     const { mutate: productMutate, isPending: isCreateLoading } = useMutation({
-        mutationFn: async (data: FormData) => { return createProduct(data).then((res) => res.data) },
+        mutationFn: async (data: FormData) => {
+            if (currentEditingProduct) {
+                return updateProduct(currentEditingProduct._id, data).then((res) => res.data)
+            } else {
+                return createProduct(data).then((res) => res.data)
+            }
+        },
         onSuccess: async () => {
             queryClient.invalidateQueries({ queryKey: ['products'] });
             setDrawerOpen(false);
             form.resetFields();
             return;
-        },
+        }
     });
     const handleSubmit = async () => {
         await form.validateFields();
@@ -132,7 +156,7 @@ const Products = () => {
                 }
             }
         }, {});
-        const categoryId = JSON.parse(form.getFieldValue("categoryId"))._id;
+        const categoryId = form.getFieldValue("categoryId");
         const attributes = Object.entries(form.getFieldValue('attributes')).map(([key, value]) => {
             return {
                 name: key,
@@ -167,7 +191,12 @@ const Products = () => {
                 <Table
                     columns={[...columns, {
                         title: 'Actions',
-                        key: 'actions'
+                        key: 'actions',
+                        render: (_text: string, record: Product) => (
+                            <Space>
+                                <Button type="link" onClick={() => { setCurrentEditingProduct(record); setDrawerOpen(true); }}>Edit</Button>
+                            </Space>
+                        ),
                     }]}
                     pagination={{
                         showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
@@ -184,22 +213,26 @@ const Products = () => {
                         }
                     }}
                     dataSource={products?.data}
-                    rowKey="_id" />
+                    rowKey="_id"
+
+                />
                 <Drawer
                     styles={{ body: { backgroundColor: colorBgLayout } }}
-                    title={"Add product"}
+                    title={currentEditingProduct ? "Update product" : "Add product"}
                     placement="right"
                     width={720}
                     destroyOnHidden={true}
                     open={drawerOpen}
                     onClose={() => {
                         setDrawerOpen(false);
+                        setCurrentEditingProduct(null);
                         form.resetFields();
                     }}
                     extra={
                         <Space>
                             <Button onClick={() => {
                                 setDrawerOpen(false);
+                                setCurrentEditingProduct(null);
                                 form.resetFields();
                             }}>
                                 Cancel
@@ -211,7 +244,7 @@ const Products = () => {
                     }
                 >
                     <Form layout="vertical" form={form}>
-                        <ProductForm />
+                        <ProductForm form={form} />
                     </Form>
                 </Drawer>
             </Space>
