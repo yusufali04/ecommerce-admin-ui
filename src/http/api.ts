@@ -1,8 +1,9 @@
-import { Credentials, Tenant, TenantFormValues, UserFormValues } from "../types";
+import { Credentials, Promo, Tenant, TenantFormValues, UserFormValues } from "../types";
 import { api } from "./client";
 
 export const AUTH_SERVICE = "/api/auth";
 const CATALOG_SERVICE = "/api/catalog";
+const ORDER_SERVICE = "/api/order";
 // Auth service
 export const login = (credentials: Credentials) => api.post(`${AUTH_SERVICE}/auth/login`, credentials);
 export const self = () => api.get(`${AUTH_SERVICE}/auth/self`);
@@ -24,3 +25,8 @@ export const getCategory = (id: string) => api.get(`${CATALOG_SERVICE}/categorie
 export const updateProduct = (id: string, data: FormData) => api.put(`${CATALOG_SERVICE}/products/${id}`, data, {
     headers: { "Content-Type": "multipart/form-data" }
 });
+
+// order service
+export const createPromo = (couponData: Promo) => api.post(`${ORDER_SERVICE}/coupons`, couponData);
+export const getPromos = (tenantId: number | null) => api.get(`${ORDER_SERVICE}/coupons${tenantId ? "?tenantId=" + tenantId : ''}`);
+export const updatePromo = (couponId: string, couponData: Promo) => api.put(`${ORDER_SERVICE}/coupons/${couponId}`, couponData);

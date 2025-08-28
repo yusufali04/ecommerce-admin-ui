@@ -80,3 +80,14 @@ export interface CategoryPriceConfiguration {
     priceType: "base" | "additional";
     availableOptions: string[];
 }
+
+export interface Promo {
+    _id?: string;
+    code: string;
+    title: string;
+    tenantId?: string;
+    discount: string;
+    validUpto: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
+}

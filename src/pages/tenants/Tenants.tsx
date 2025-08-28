@@ -30,24 +30,24 @@ const columns = [
 ]
 
 const Tenants = () => {
-    const [ currentEditingTenant, setCurrentEditingTenant ] = useState<Tenant | null>(null);
+    const [currentEditingTenant, setCurrentEditingTenant] = useState<Tenant | null>(null);
     const queryClient = useQueryClient();
-    const [ filterForm ] = Form.useForm();
-    const [ tenantForm ] = Form.useForm();
-    const [ queryParams, setQueryParams ] = useState({
-            perPage: PER_PAGE,
-            currentPage: 1,
-        });
+    const [filterForm] = Form.useForm();
+    const [tenantForm] = Form.useForm();
+    const [queryParams, setQueryParams] = useState({
+        perPage: PER_PAGE,
+        currentPage: 1,
+    });
     const [drawerOpen, setDrawerOpen] = useState(false);
     const { user } = useAuthStore();
     React.useEffect(() => {
-            if (currentEditingTenant) {
-                setDrawerOpen(true);
-                tenantForm.setFieldsValue({
-                    ...currentEditingTenant,
-                    tenantId: currentEditingTenant?.id
-                });
-            }
+        if (currentEditingTenant) {
+            setDrawerOpen(true);
+            tenantForm.setFieldsValue({
+                ...currentEditingTenant,
+                tenantId: currentEditingTenant?.id
+            });
+        }
     }, [currentEditingTenant, tenantForm]);
     const { data: tenantsData, isLoading, error } = useQuery({
         queryKey: ['tenants', queryParams],
@@ -58,59 +58,59 @@ const Tenants = () => {
         }
     });
     const { mutate: createTenantMutate } = useMutation({
-            mutationFn: async (data: TenantFormValues) => {return createTenant(data as Tenant).then((res) => res.data)},
-            onSuccess: async () => {
-                queryClient.invalidateQueries({ queryKey: ['tenants'] });
-                return;
-            },
+        mutationFn: async (data: TenantFormValues) => { return createTenant(data as Tenant).then((res) => res.data) },
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] });
+            return;
+        },
     });
     const { mutate: updateTenantMutate } = useMutation({
-            mutationFn: async (data: TenantFormValues) => {
-                return updateTenant(String(currentEditingTenant!.id), data).then((res) => res.data);
-            },
-            onSuccess: async () => {
-                queryClient.invalidateQueries({ queryKey: ['tenants'] });
-                return;
-            },
+        mutationFn: async (data: TenantFormValues) => {
+            return updateTenant(String(currentEditingTenant!.id), data).then((res) => res.data);
+        },
+        onSuccess: async () => {
+            queryClient.invalidateQueries({ queryKey: ['tenants'] });
+            return;
+        },
     });
     const debouncedQUpdate = React.useMemo(() => {
-            return debounce((value: string | undefined)=> {
-                setQueryParams((prev) => ({...prev, q: value, currentPage: 1}));
-            }, 500)
-        }, []);
-        const onFilterChange = (changedFields: FieldData[]) => {
-            const changedFilterFields = changedFields.map((field) => {
-                return {
-                    [field.name[0]]: field.value
-                }
-            }).reduce((acc, curr) => ({...acc,...curr}), {});
-            console.log(changedFilterFields);
-            
-            if('q' in changedFilterFields) {
-                debouncedQUpdate(changedFilterFields.q);
-            } else {
-                setQueryParams((prev) => ({...prev, ...changedFilterFields, currentPage: 1}));
+        return debounce((value: string | undefined) => {
+            setQueryParams((prev) => ({ ...prev, q: value, currentPage: 1 }));
+        }, 500)
+    }, []);
+    const onFilterChange = (changedFields: FieldData[]) => {
+        const changedFilterFields = changedFields.map((field) => {
+            return {
+                [field.name[0]]: field.value
             }
+        }).reduce((acc, curr) => ({ ...acc, ...curr }), {});
+        console.log(changedFilterFields);
+
+        if ('q' in changedFilterFields) {
+            debouncedQUpdate(changedFilterFields.q);
+        } else {
+            setQueryParams((prev) => ({ ...prev, ...changedFilterFields, currentPage: 1 }));
         }
-        const handleSubmit = async () => {
-            const isEditMode = !!currentEditingTenant;
-            await tenantForm.validateFields();
-            if (isEditMode) {
-                await updateTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
-            } else {
-                await createTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
-            }
-            setCurrentEditingTenant(null);
-            setDrawerOpen(false);
-            tenantForm.resetFields();
+    }
+    const handleSubmit = async () => {
+        const isEditMode = !!currentEditingTenant;
+        await tenantForm.validateFields();
+        if (isEditMode) {
+            await updateTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
+        } else {
+            await createTenantMutate(tenantForm.getFieldsValue() as TenantFormValues);
         }
+        setCurrentEditingTenant(null);
+        setDrawerOpen(false);
+        tenantForm.resetFields();
+    }
     if (user?.role !== "admin") {
         return <Navigate to="/" replace={true} />
     }
     return (
         <>
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
-                <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Restaurants"}]} />
+                <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Restaurants" }]} />
                 {isLoading && <div>Loading...</div>}
                 {error && <div>{error && "Error while fetching restaurants!"}</div>}
                 <Form form={filterForm} onFieldsChange={onFilterChange}>
@@ -118,36 +118,36 @@ const Tenants = () => {
                         <Button icon={<PlusOutlined />} type="primary" onClick={() => { setDrawerOpen(true); }}>Add Restaurant</Button>
                     </TenantsFilters>
                 </Form>
-                
-                <Table 
-                    columns={[...columns, 
-                        {
-                            title: "Actions",
-                            key: "actions",
-                            render: (_text: string, record: Tenant) => (
-                                <Space>
-                                    <Button type="link" onClick={() => { setCurrentEditingTenant(record); setDrawerOpen(true); }}>Edit</Button>
-                                </Space>
-                            ),
-                        }
-                    ]} 
-                    dataSource={tenantsData?.data} 
-                    rowKey="id"
-                    
-                    pagination={{
-                    showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
-                    pageSize: queryParams.perPage,
-                    current: queryParams.currentPage,
-                    total: tenantsData?.total || 0,
-                    onChange: (page) => {
-                        setQueryParams(() => {
-                            return {
-                                ...queryParams,
-                                currentPage: page
-                            }
-                        });
+
+                <Table
+                    columns={[...columns,
+                    {
+                        title: "Actions",
+                        key: "actions",
+                        render: (_text: string, record: Tenant) => (
+                            <Space>
+                                <Button type="link" onClick={() => { setCurrentEditingTenant(record); setDrawerOpen(true); }}>Edit</Button>
+                            </Space>
+                        ),
                     }
-                }}   />
+                    ]}
+                    dataSource={tenantsData?.data}
+                    rowKey="id"
+
+                    pagination={{
+                        showTotal: (total: number, range: number[]) => `Showing ${range[0]}-${range[1]} of ${total} items`,
+                        pageSize: queryParams.perPage,
+                        current: queryParams.currentPage,
+                        total: tenantsData?.total || 0,
+                        onChange: (page) => {
+                            setQueryParams(() => {
+                                return {
+                                    ...queryParams,
+                                    currentPage: page
+                                }
+                            });
+                        }
+                    }} />
                 <Drawer
                     title={currentEditingTenant ? "Edit Restaurant" : "Create Restaurant"}
                     placement="right"
