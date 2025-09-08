@@ -139,7 +139,7 @@ const Orders = () => {
     return (
         <>
             <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
-                <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Promos" }]} />
+                <Breadcrumb separator={<RightOutlined />} items={[{ title: <Link to={"/"}>Dashboard</Link> }, { title: "Orders" }]} />
                 <Form form={filterForm} onFieldsChange={onFilterChange}>
                     <OrdersFilters />
                 </Form>
