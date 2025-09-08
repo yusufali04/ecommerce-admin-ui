@@ -30,3 +30,4 @@ export const updateProduct = (id: string, data: FormData) => api.put(`${CATALOG_
 export const createPromo = (couponData: Promo) => api.post(`${ORDER_SERVICE}/coupons`, couponData);
 export const getPromos = (tenantId: number | null) => api.get(`${ORDER_SERVICE}/coupons${tenantId ? "?tenantId=" + tenantId : ''}`);
 export const updatePromo = (couponId: string, couponData: Promo) => api.put(`${ORDER_SERVICE}/coupons/${couponId}`, couponData);
+export const getOrders = (tenantId: number | null) => api.get(`${ORDER_SERVICE}/orders${tenantId ? "?tenantId=" + tenantId : ''}`);

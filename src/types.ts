@@ -91,3 +91,65 @@ export interface Promo {
     createdAt?: Date;
     updatedAt?: Date;
 }
+
+export interface Customer {
+    _id: string;
+    firstName: string;
+    lastName: string
+}
+
+export type Topping = {
+    _id: string;
+    name: string;
+    price: number;
+    image: string;
+    isAvailable: boolean;
+}
+
+export interface CartItem extends Pick<Product, '_id' | 'name' | 'image' | 'priceConfiguration'> {
+    chosenConfiguration: {
+        priceConfiguration: {
+            [key: string]: string
+        };
+        selectedToppings: Topping[];
+    };
+    qty: number;
+}
+
+export enum PaymentMode {
+    CASH = "cash",
+    CARD = "card"
+}
+export enum OrderStatus {
+    RECEIVED = "received",
+    CONFIRMED = "confirmed",
+    PREPARING = "preparing",
+    PREPARED = "prepared",
+    OUT_FOR_DELIVERY = "out_for_delivery",
+    DELIVERED = "delivered"
+}
+
+export enum PaymentStatus {
+    PENDING = "pending",
+    PAID = "paid",
+    FAILED = "failed"
+}
+
+export interface Order {
+    _id: string
+    cart: CartItem[];
+    customerId: Customer;
+    total: number;
+    discount: number;
+    taxes: number;
+    deliveryCharges: number;
+    address: string;
+    tenantId: string;
+    comment?: string;
+    paymentMode: PaymentMode;
+    orderStatus: OrderStatus;
+    paymentStatus: PaymentStatus;
+    paymentReferenceId?: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

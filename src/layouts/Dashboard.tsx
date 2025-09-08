@@ -14,7 +14,7 @@ import { logout } from "../http/api";
 
 const { Sider, Header, Content, Footer } = Layout;
 
-const getMenuItems = (role: string) => { 
+const getMenuItems = (role: string) => {
     const baseItems = [
         {
             key: '/',
@@ -23,8 +23,13 @@ const getMenuItems = (role: string) => {
         },
         {
             key: '/products',
-            icon: <Icon component={Basket} />,
+            icon: <Icon component={Food} />,
             label: <NavLink to={"/products"}>Products</NavLink>
+        },
+        {
+            key: '/orders',
+            icon: <Icon component={Basket} />,
+            label: <NavLink to={"/orders"}>Orders</NavLink>
         },
         {
             key: '/promos',
@@ -32,11 +37,11 @@ const getMenuItems = (role: string) => {
             label: <NavLink to={"/promos"}>Promos</NavLink>
         }
     ]
-    if(role === "admin") {
+    if (role === "admin") {
         baseItems.splice(1, 0, {
-                key: '/users',
-                icon: <Icon component={User} />,
-                label: <NavLink to={"/users"}>Users</NavLink>
+            key: '/users',
+            icon: <Icon component={User} />,
+            label: <NavLink to={"/users"}>Users</NavLink>
         });
         baseItems.splice(2, 0, {
             key: '/restaurants',
@@ -45,13 +50,13 @@ const getMenuItems = (role: string) => {
         });
     }
     return baseItems;
- }
+}
 
 const Dashboard = () => {
     const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
     const { logout: logoutFromStore, user } = useAuthStore();
-    const {token: { colorBgContainer }} = theme.useToken();
+    const { token: { colorBgContainer } } = theme.useToken();
     const items = getMenuItems(user?.role as string);
 
     const { mutate: logoutMutate } = useMutation({
@@ -62,8 +67,8 @@ const Dashboard = () => {
             return;
         }
     })
-    if(user === null) {
-        return <Navigate to={`/auth/login?returnTo=${encodeURIComponent(location.pathname)}`} replace={true}/>
+    if (user === null) {
+        return <Navigate to={`/auth/login?returnTo=${encodeURIComponent(location.pathname)}`} replace={true} />
     }
     return <div>
         <Layout style={{ minHeight: '100vh' }}>
@@ -74,41 +79,41 @@ const Dashboard = () => {
             <Layout>
                 <Header style={{ padding: "0px 16px", background: colorBgContainer }} >
                     <Flex gap="middle" align="start" justify="space-between">
-                            <Badge
-                                text={user.role === "admin"? "You are an admin": user.tenant?.name}
-                                status="success"
-                            />
-                            <Space size={16}>
-                                <Badge dot={true}>
-                                    <BellFilled />
-                                </Badge>
-                                <Dropdown
-                                    menu={{
-                                        items: [
-                                            {
-                                                key: 'logout',
-                                                label: 'Logout',
-                                                onClick: () => logoutMutate(),
-                                            },
-                                        ],
-                                    }}
-                                    placement="bottomRight">
-                                    <Avatar
-                                        style={{
-                                            backgroundColor: '#fde3cf',
-                                            color: '#f56a00',
-                                        }}>
-                                        U
-                                    </Avatar>
-                                </Dropdown>
-                            </Space>
-                        </Flex>
+                        <Badge
+                            text={user.role === "admin" ? "You are an admin" : user.tenant?.name}
+                            status="success"
+                        />
+                        <Space size={16}>
+                            <Badge dot={true}>
+                                <BellFilled />
+                            </Badge>
+                            <Dropdown
+                                menu={{
+                                    items: [
+                                        {
+                                            key: 'logout',
+                                            label: 'Logout',
+                                            onClick: () => logoutMutate(),
+                                        },
+                                    ],
+                                }}
+                                placement="bottomRight">
+                                <Avatar
+                                    style={{
+                                        backgroundColor: '#fde3cf',
+                                        color: '#f56a00',
+                                    }}>
+                                    U
+                                </Avatar>
+                            </Dropdown>
+                        </Space>
+                    </Flex>
                 </Header>
                 <Content style={{ margin: '16px' }}>
                     <Outlet />
                 </Content>
                 <Footer style={{ textAlign: 'center' }}>
-                Pizza House ©{new Date().getFullYear()} Built with 💖 by Yusuf
+                    Pizza House ©{new Date().getFullYear()} Built with 💖 by Yusuf
                 </Footer>
             </Layout>
         </Layout>
