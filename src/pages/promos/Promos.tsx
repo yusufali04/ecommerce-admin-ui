@@ -1,4 +1,4 @@
-import { Breadcrumb, Button, Drawer, Form, Space, Table } from "antd";
+import { Breadcrumb, Button, Drawer, Form, Space, Table, Typography } from "antd";
 import { PlusOutlined, RightOutlined } from "@ant-design/icons";
 import { Link, Navigate } from "react-router-dom";
 import { useAuthStore } from "../../store";
@@ -34,7 +34,16 @@ const columns = [
         dataIndex: 'validUpto',
         key: 'validUpto',
         render: (_text: string, record: Promo) => {
-            return new Date(record.validUpto).toLocaleString();
+            return <Typography.Text>
+                {new Date(record.validUpto).toLocaleString("en-US", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true, // set false if you want 24-hour format
+                })}
+            </Typography.Text>
         }
     }
 ];
@@ -106,8 +115,6 @@ const Promos = () => {
             return await updatePromo(id as string, data).then((res) => res.data);
         },
         onSuccess: async () => {
-            console.log("Update success");
-
             queryClient.invalidateQueries({ queryKey: ['promos'] });
             return;
         },
@@ -120,7 +127,6 @@ const Promos = () => {
         console.log(currentEditingPromo);
 
         if (currentEditingPromo) {
-            console.log("Calling update");
             updatePromoMutate({ id: currentEditingPromo._id!, data: finalPromoData })
         } else {
             createPromoMutate(finalPromoData)
