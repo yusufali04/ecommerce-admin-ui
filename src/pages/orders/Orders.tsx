@@ -79,7 +79,7 @@ const columns = [
         dataIndex: "createdAt",
         key: "createdAt",
         render: (_text: string, record: Order) => {
-            return <Typography.Text>{new Date(record.createdAt).toLocaleString("en-US", {
+            return <Typography.Text>{new Date(record.createdAt).toLocaleString("en-IN", {
                 year: "numeric",
                 month: "2-digit",
                 day: "2-digit",

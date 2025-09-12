@@ -1,4 +1,4 @@
-import { Avatar, Breadcrumb, Card, Col, List, Row, Space, Tag, Typography } from 'antd';
+import { Avatar, Breadcrumb, Card, Col, Flex, List, Row, Space, Tag, Typography } from 'antd';
 import { RightOutlined } from "@ant-design/icons";
 import { Link, useParams } from 'react-router-dom'
 import { colorMapping } from '../../constants';
@@ -12,11 +12,13 @@ const SingleOrder = () => {
     const { data: order, isLoading } = useQuery<Order>({
         queryKey: ["order", orderId],
         queryFn: async () => {
-            const queryString = new URLSearchParams({ fields: 'cart,address,paymentMode,tenantId,total,comment,orderStatus,paymentStatus' }).toString();
+            const queryString = new URLSearchParams({ fields: 'cart,address,paymentMode,tenantId,total,comment,orderStatus,paymentStatus,createdAt' }).toString();
             return getSingleOrder(orderId as string, queryString).then((res) => res.data)
         }
     })
-
+    if (!order) {
+        return <div>Loading...</div>
+    }
     return (
         <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
             <Breadcrumb separator={<RightOutlined />} items={[
@@ -58,7 +60,49 @@ const SingleOrder = () => {
                 </Col>
                 <Col span={10}>
                     <Card title="Customer details">
-
+                        <Space direction="vertical">
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Name</Typography.Text>
+                                <Typography.Text>{order.customerId.firstName + " " + order.customerId.lastName}</Typography.Text>
+                            </Flex>
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Address</Typography.Text>
+                                <Typography.Text>{order.address}</Typography.Text>
+                            </Flex>
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Payment Method</Typography.Text>
+                                <Typography.Text>{capitalizeFirstLetter(order.paymentMode as string)}</Typography.Text>
+                            </Flex>
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Payment Status</Typography.Text>
+                                <Typography.Text>{capitalizeFirstLetter(order.paymentStatus as string)}</Typography.Text>
+                            </Flex>
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Order Amount</Typography.Text>
+                                <Typography.Text>₹{order.total}</Typography.Text>
+                            </Flex>
+                            <Flex style={{ flexDirection: "column" }}>
+                                <Typography.Text type='secondary'>Ordered At</Typography.Text>
+                                <Typography.Text>{new Date(order.createdAt).toLocaleString("en-IN", {
+                                    weekday: 'long',
+                                    year: "numeric",
+                                    month: "2-digit",
+                                    day: "2-digit",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    second: "2-digit",
+                                    hour12: true,
+                                })}</Typography.Text>
+                            </Flex>
+                            {
+                                order.comment && (
+                                    <Flex style={{ flexDirection: "column" }}>
+                                        <Typography.Text type='secondary'>Note from customer</Typography.Text>
+                                        <Typography.Text>{order.comment}</Typography.Text>
+                                    </Flex>
+                                )
+                            }
+                        </Space>
                     </Card>
                 </Col>
             </Row>
