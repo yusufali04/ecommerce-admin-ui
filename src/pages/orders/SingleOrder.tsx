@@ -1,13 +1,41 @@
-import { Avatar, Breadcrumb, Card, Col, Flex, List, Row, Space, Tag, Typography } from 'antd';
+import { Avatar, Breadcrumb, Card, Col, Flex, List, Row, Select, Space, Tag, Typography } from 'antd';
 import { RightOutlined } from "@ant-design/icons";
 import { Link, useParams } from 'react-router-dom'
 import { colorMapping } from '../../constants';
 import { capitalizeFirstLetter } from '../../utils';
-import { useQuery } from '@tanstack/react-query';
-import { getSingleOrder } from '../../http/api';
-import { Order } from '../../types';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { changeOrderStatus, getSingleOrder } from '../../http/api';
+import { Order, OrderStatus } from '../../types';
+
+const orderStatusOptions = [
+    {
+        value: OrderStatus.RECEIVED,
+        label: "Received"
+    },
+    {
+        value: OrderStatus.CONFIRMED,
+        label: "Confirmed"
+    },
+    {
+        value: OrderStatus.PREPARING,
+        label: "Preparing"
+    },
+    {
+        value: OrderStatus.PREPARED,
+        label: "Prepared"
+    },
+    {
+        value: OrderStatus.OUT_FOR_DELIVERY,
+        label: "Out for Delivery"
+    },
+    {
+        value: OrderStatus.DELIVERED,
+        label: "Delivered"
+    }
+]
 
 const SingleOrder = () => {
+    const queryClient = useQueryClient();
     const { orderId } = useParams();
     const { data: order, isLoading } = useQuery<Order>({
         queryKey: ["order", orderId],
@@ -16,15 +44,39 @@ const SingleOrder = () => {
             return getSingleOrder(orderId as string, queryString).then((res) => res.data)
         }
     })
+    const { mutate } = useMutation({
+        mutationKey: ['order', orderId],
+        mutationFn: async (orderStatus: OrderStatus) => {
+            return await changeOrderStatus(orderId as string, { orderStatus }).then((res) => res.data);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["order", orderId] })
+        }
+    })
     if (!order) {
         return <div>Loading...</div>
     }
+    const handleStatusChange = async (status: OrderStatus) => {
+        mutate(status)
+    }
     return (
         <Space direction="vertical" style={{ width: '100%' }} size={"large"}>
-            <Breadcrumb separator={<RightOutlined />} items={[
-                { title: <Link to={"/"}>Dashboard</Link> },
-                { title: <Link to={"/orders"}>Orders</Link> },
-                { title: `Order #${orderId}` }]} />
+            <Flex justify='space-between'>
+                <Breadcrumb separator={<RightOutlined />} items={[
+                    { title: <Link to={"/"}>Dashboard</Link> },
+                    { title: <Link to={"/orders"}>Orders</Link> },
+                    { title: `Order #${orderId}` }]}
+                />
+                <Space>
+                    <Typography.Text>Change Order Status</Typography.Text>
+                    <Select
+                        defaultValue={order.orderStatus}
+                        style={{ width: 200 }}
+                        onChange={handleStatusChange}
+                        options={orderStatusOptions}
+                    />
+                </Space>
+            </Flex>
             <Row gutter={24}>
                 <Col span={14}>
                     <Card title="Order details" extra={

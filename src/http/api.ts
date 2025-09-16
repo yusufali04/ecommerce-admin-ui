@@ -1,4 +1,4 @@
-import { Credentials, Promo, Tenant, TenantFormValues, UserFormValues } from "../types";
+import { Credentials, OrderStatus, Promo, Tenant, TenantFormValues, UserFormValues } from "../types";
 import { api } from "./client";
 
 export const AUTH_SERVICE = "/api/auth";
@@ -32,3 +32,4 @@ export const getPromos = (tenantId: number | null) => api.get(`${ORDER_SERVICE}/
 export const updatePromo = (couponId: string, couponData: Promo) => api.put(`${ORDER_SERVICE}/coupons/${couponId}`, couponData);
 export const getOrders = (tenantId: number | null) => api.get(`${ORDER_SERVICE}/orders${tenantId ? "?tenantId=" + tenantId : ''}`);
 export const getSingleOrder = (orderId: string, queryString: string) => api.get(`${ORDER_SERVICE}/orders/${orderId}?${queryString}`);
+export const changeOrderStatus = (orderId: string, data: { orderStatus: OrderStatus }) => api.patch(`${ORDER_SERVICE}/orders/change-status/${orderId}`, data);
