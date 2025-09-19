@@ -9,6 +9,7 @@ import React from 'react';
 import OrdersFilters from './OrdersFilters';
 import { colorMapping } from '../../constants';
 import { capitalizeFirstLetter } from '../../utils';
+import socket from '../../lib/socket';
 
 const columns = [
     {
@@ -98,11 +99,30 @@ const columns = [
 ]
 
 const Orders = () => {
+
     const [filterForm] = Form.useForm();
     const { user } = useAuthStore();
     const [orders, setOrders] = React.useState<Order[]>([]);
     const [filters, setFilters] = React.useState<{ q?: string }>({});
     const [selectedTenant, setSelectedTenant] = React.useState<string>('');
+
+    React.useEffect(() => {
+        if (user?.tenant) {
+            socket.on('order-update', (data) => {
+                console.log("Data received: ", data);
+            })
+            socket.emit('join', {
+                tenantId: user?.tenant.id
+            })
+            socket.on("join", (data) => {
+                console.log("User joined in: ", data.roomId);
+            })
+        }
+        return () => {
+            socket.off("join")
+            socket.off("order-update")
+        }
+    }, [user])
 
     const { data: ordersData, isLoading, isError } = useQuery({
         queryKey: ['orders', selectedTenant],
