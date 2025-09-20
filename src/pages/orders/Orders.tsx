@@ -1,8 +1,8 @@
 import { Breadcrumb, Form, Space, Table, Tag, Typography } from 'antd';
 import { RightOutlined } from "@ant-design/icons";
 import { Link } from 'react-router-dom';
-import { FieldData, Order } from '../../types';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { FieldData, Order, OrderEvents, PaymentMode, PaymentStatus } from '../../types';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrders } from '../../http/api';
 import { useAuthStore } from '../../store';
 import React from 'react';
@@ -97,19 +97,37 @@ const columns = [
         }
     }
 ]
-
+const playNotification = () => {
+    const audio = new Audio("/notification.mp3"); // path relative to public/
+    audio.play();
+};
 const Orders = () => {
-
+    const [highlightedRow, setHighlightedRow] = React.useState<string | null>(null);
     const [filterForm] = Form.useForm();
     const { user } = useAuthStore();
     const [orders, setOrders] = React.useState<Order[]>([]);
     const [filters, setFilters] = React.useState<{ q?: string }>({});
     const [selectedTenant, setSelectedTenant] = React.useState<string>('');
+    const queryClient = useQueryClient();
 
     React.useEffect(() => {
         if (user?.tenant) {
             socket.on('order-update', (data) => {
-                console.log("Data received: ", data);
+                if (
+                    (data.event_type === OrderEvents.ORDER_CREATE
+                        && data.data.paymentMode === PaymentMode.CASH)
+                    || (data.event_type === OrderEvents.PAYMENT_STATUS_UPDATE
+                        && data.data.paymentStatus === PaymentStatus.PAID
+                        && data.data.paymentMode === PaymentMode.CARD)
+                ) {
+                    queryClient.setQueryData<Order[]>(['orders', selectedTenant], (old) => {
+                        const newOrder = data.data; // your new order
+                        playNotification();
+                        setHighlightedRow(newOrder._id); // mark for highlight
+                        setTimeout(() => setHighlightedRow(null), 3000); // remove after 2s
+                        return [newOrder, ...(old ?? [])];
+                    });
+                }
             })
             socket.emit('join', {
                 tenantId: user?.tenant.id
@@ -180,6 +198,9 @@ const Orders = () => {
                     pagination={{
                         pageSize: 6,
                     }}
+                    rowClassName={(record) =>
+                        record._id === highlightedRow ? "blink-row" : ""
+                    }
                 />
             </Space >
         </>

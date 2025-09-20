@@ -1,11 +1,30 @@
 #login-form-forgot {
-    padding-top: 8px;
-    font-size: 12px;
+  padding-top: 8px;
+  font-size: 12px;
 }
-.logo{
-    padding: 20px 30px;
+.logo {
+  padding: 20px 30px;
 }
-.card{
-    background: white;
-    padding: 20px;
+.card {
+  background: white;
+  padding: 20px;
+}
+
+.blink-row {
+  animation: blink-bg 2s ease-in-out;
+}
+
+@keyframes blink-bg {
+  0% {
+    background-color: #ff9e8a;
+  } /* AntD light blue */
+  50% {
+    background-color: #ffffff;
+  }
+  75% {
+    background-color: #ff9e8a;
+  }
+  100% {
+    background-color: #ffffff;
+  }
 }
