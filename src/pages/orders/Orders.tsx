@@ -62,7 +62,7 @@ const columns = [
         render: (_text: string, record: Order) => {
             return (
                 <>
-                    <Tag bordered={false} color={colorMapping[record.orderStatus]}>{capitalizeFirstLetter(record.orderStatus)}</Tag>
+                    <Tag bordered={false} color={colorMapping[record.orderStatus]}>{(capitalizeFirstLetter(record.orderStatus).replace(/_/g, " "))}</Tag>
                 </>
             )
         }
