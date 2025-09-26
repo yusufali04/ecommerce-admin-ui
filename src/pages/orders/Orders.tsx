@@ -36,7 +36,13 @@ const columns = [
         dataIndex: "address",
         key: "address",
         render: (_text: string, record: Order) => {
-            return <Typography.Text>{record.address}</Typography.Text>
+            const maxLength = 30;
+            const address = record.address || "";
+            const displayAddress =
+                address.length > maxLength
+                    ? address.slice(0, maxLength) + "..."
+                    : address;
+            return <Typography.Text>{displayAddress}</Typography.Text>
         }
     },
     {
@@ -44,7 +50,17 @@ const columns = [
         dataIndex: "comment",
         key: "comment",
         render: (_text: string, record: Order) => {
-            return <Typography.Text>{record.comment}</Typography.Text>
+            const maxLength = 30;
+            const comment = record.comment || "";
+            const displayComment =
+                comment.length > maxLength
+                    ? comment.slice(0, maxLength) + "..."
+                    : comment;
+            return (
+                <Typography.Text title={comment}>
+                    {displayComment}
+                </Typography.Text>
+            );
         }
     },
     {
